@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Luxury Shoes · Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cream:#faf8f4;--white:#ffffff;--dark:#1c1a17;--mid:#5a5750;
+  --border:#e8e3db;--border2:#d4cec4;--accent:#c8a96e;--accent2:#b8894e;
+  --green:#1a5c38;--green-bg:#edf5f0;--red:#8b2020;--red-bg:#fdf0f0;
+  --warn-bg:#fff8ec;--warn:#7a5200;
+  --shadow-sm:0 2px 8px rgba(28,26,23,.07);
+  --shadow-md:0 8px 32px rgba(28,26,23,.12);
+  --r:14px;--transition:.22s cubic-bezier(.4,0,.2,1);
+  --ch-blue:#378ADD;--ch-teal:#1D9E75;--ch-amber:#BA7517;
+  --ch-coral:#D85A30;--ch-purple:#7F77DD;--ch-green:#639922;
+  --ch-gray:#888780;--ch-pink:#D4537E;
+}
+body.dark{
+  --cream:#121110;--white:#1c1a18;--dark:#f0ece4;--mid:#8a8478;
+  --border:#2a2724;--border2:#363230;
+  --green:#2d9e5f;--green-bg:#0e2a1a;--red:#c05050;--red-bg:#2a0e0e;
+  --warn-bg:#2a1e00;--warn:#d4a44c;
+  --shadow-sm:0 2px 8px rgba(0,0,0,.3);--shadow-md:0 8px 32px rgba(0,0,0,.4);
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--dark);min-height:100vh;transition:background var(--transition),color var(--transition)}
+
+/* ─ HEADER ─ */
+header{
+  position:sticky;top:0;z-index:200;background:var(--dark);
+  padding:0 clamp(1rem,4vw,2.5rem);height:64px;
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;
+}
+.logo-group{display:flex;align-items:center;gap:.75rem}
+.back-btn{
+  width:34px;height:34px;border-radius:50%;flex-shrink:0;
+  border:1px solid rgba(255,255,255,.2);background:transparent;
+  color:rgba(255,255,255,.6);cursor:pointer;text-decoration:none;
+  display:flex;align-items:center;justify-content:center;font-size:1rem;
+  transition:all var(--transition);
+}
+.back-btn:hover{border-color:var(--accent);color:var(--accent)}
+.logo-name{font-family:'Playfair Display',serif;font-size:1.25rem;color:#fff}
+.logo-sub{font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-top:2px}
+.header-right{display:flex;align-items:center;gap:.65rem;flex-shrink:0}
+.icon-btn{
+  width:34px;height:34px;border-radius:50%;flex-shrink:0;
+  border:1px solid rgba(255,255,255,.2);background:transparent;
+  color:rgba(255,255,255,.6);cursor:pointer;font-size:.95rem;
+  display:flex;align-items:center;justify-content:center;transition:all var(--transition);
+}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent)}
+.refresh-btn{
+  padding:.3rem .9rem;border:1px solid rgba(255,255,255,.2);border-radius:100px;
+  background:transparent;color:rgba(255,255,255,.6);cursor:pointer;
+  font-size:.72rem;font-family:'DM Sans',sans-serif;letter-spacing:.04em;
+  transition:all var(--transition);white-space:nowrap;
+}
+.refresh-btn:hover{border-color:var(--accent);color:var(--accent)}
+.refresh-btn.spinning svg{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.last-update{font-size:.65rem;color:rgba(255,255,255,.3);white-space:nowrap}
+
+/* ─ MAIN LAYOUT ─ */
+.main{padding:1.5rem clamp(1rem,4vw,2.5rem) 3rem;max-width:1480px;margin:0 auto}
+.section-label{
+  font-size:.68rem;font-weight:500;text-transform:uppercase;letter-spacing:.12em;
+  color:var(--mid);margin:1.75rem 0 .85rem;display:flex;align-items:center;gap:.75rem;
+}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ─ LOADING OVERLAY ─ */
+.loading-overlay{
+  display:none;position:fixed;inset:0;z-index:999;
+  background:rgba(28,26,23,.6);backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;flex-direction:column;gap:1rem;
+}
+.loading-overlay.show{display:flex}
+.spinner{
+  width:42px;height:42px;border-radius:50%;
+  border:2px solid rgba(200,169,110,.25);border-top-color:var(--accent);
+  animation:spin .8s linear infinite;
+}
+.loading-overlay p{font-size:.85rem;color:rgba(255,255,255,.65)}
+
+/* ─ KPI GRID ─ */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.kpi{
+  background:var(--white);border:1px solid var(--border);border-radius:var(--r);
+  padding:1rem 1.1rem;position:relative;overflow:hidden;
+  transition:transform var(--transition),box-shadow var(--transition);
+}
+.kpi:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+.kpi::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  transform:scaleX(0);transform-origin:left;transition:transform var(--transition);
+}
+.kpi:hover::after{transform:scaleX(1)}
+.kpi-icon{font-size:1.2rem;margin-bottom:.4rem;opacity:.7}
+.kpi-label{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--mid);margin-bottom:.3rem}
+.kpi-val{font-family:'Playfair Display',serif;font-size:1.85rem;color:var(--dark);line-height:1}
+.kpi-val.accent{color:var(--accent2)}
+.kpi-sub{font-size:.68rem;color:var(--mid);margin-top:.3rem}
+.kpi-trend{
+  display:inline-flex;align-items:center;gap:2px;font-size:.65rem;margin-top:.25rem;
+  padding:2px 7px;border-radius:100px;font-weight:500;
+}
+.trend-up{background:var(--green-bg);color:var(--green)}
+.trend-warn{background:var(--warn-bg);color:var(--warn)}
+.trend-neutral{background:var(--border);color:var(--mid)}
+
+/* ─ CHARTS GRID ─ */
+.charts-row{display:grid;gap:14px}
+.charts-row.cols-2{grid-template-columns:1fr 1fr}
+.charts-row.cols-3{grid-template-columns:1fr 1fr 1fr}
+.charts-row.cols-1-2{grid-template-columns:1fr 2fr}
+.charts-row.cols-2-1{grid-template-columns:2fr 1fr}
+.chart-card{
+  background:var(--white);border:1px solid var(--border);border-radius:var(--r);
+  padding:1.15rem 1.25rem;
+}
+.chart-card-title{
+  font-size:.8rem;font-weight:500;color:var(--dark);margin-bottom:.15rem;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.chart-card-sub{font-size:.68rem;color:var(--mid);margin-bottom:.85rem}
+.chart-wrap{position:relative}
+
+/* ─ LEGEND ─ */
+.chart-legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px}
+.leg-item{display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--mid)}
+.leg-sq{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+
+/* ─ ALERTS ─ */
+.alerts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.alert{
+  border-radius:var(--r);padding:.85rem 1rem;border-left:3px solid;
+  background:var(--white);border-top:1px solid var(--border);
+  border-right:1px solid var(--border);border-bottom:1px solid var(--border);
+}
+.alert.green{border-left-color:var(--green);background:var(--green-bg)}
+.alert.red{border-left-color:var(--red);background:var(--red-bg)}
+.alert.warn{border-left-color:#c8a96e;background:var(--warn-bg)}
+.alert.info{border-left-color:#378ADD;background:rgba(55,138,221,.06)}
+.alert-header{display:flex;align-items:center;gap:7px;margin-bottom:4px}
+.alert-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.alert.green .alert-dot{background:var(--green)}
+.alert.red .alert-dot{background:var(--red)}
+.alert.warn .alert-dot{background:#c8a96e}
+.alert.info .alert-dot{background:#378ADD}
+.alert-title{font-size:.8rem;font-weight:500}
+.alert.green .alert-title{color:var(--green)}
+.alert.red .alert-title{color:var(--red)}
+.alert.warn .alert-title{color:var(--warn)}
+.alert.info .alert-title{color:#185FA5}
+body.dark .alert.info .alert-title{color:#85B7EB}
+.alert-body{font-size:.73rem;color:var(--mid);line-height:1.5}
+
+/* ─ TOP TABLE ─ */
+.top-table{width:100%;border-collapse:collapse;font-size:.78rem}
+.top-table th{text-align:left;font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;color:var(--mid);padding:.4rem .5rem;border-bottom:1px solid var(--border);font-weight:500}
+.top-table td{padding:.5rem .5rem;border-bottom:1px solid var(--border);color:var(--dark)}
+.top-table tr:last-child td{border-bottom:none}
+.top-table tr:hover td{background:var(--cream)}
+.bar-cell{display:flex;align-items:center;gap:6px}
+.mini-bar{height:4px;border-radius:2px;background:var(--accent);min-width:2px;transition:width .6s}
+.rank-num{
+  width:20px;height:20px;border-radius:50%;background:var(--dark);color:#fff;
+  font-size:.62rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+
+/* ─ ERROR STATE ─ */
+.error-state{
+  text-align:center;padding:5rem 2rem;color:var(--mid);grid-column:1/-1;
+}
+.error-state h2{font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--dark);margin-bottom:.75rem}
+.error-state p{font-size:.85rem;line-height:1.7;max-width:400px;margin:0 auto 1rem}
+.retry-btn{
+  padding:.55rem 1.5rem;border:1px solid var(--border2);border-radius:8px;
+  background:transparent;cursor:pointer;font-family:'DM Sans',sans-serif;
+  font-size:.82rem;color:var(--dark);transition:all var(--transition);
+}
+.retry-btn:hover{background:var(--dark);color:#fff;border-color:var(--dark)}
+
+/* ─ RESPONSIVE ─ */
+@media(max-width:900px){
+  .charts-row.cols-2,.charts-row.cols-3,.charts-row.cols-1-2,.charts-row.cols-2-1{grid-template-columns:1fr}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:480px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .kpi-val{font-size:1.5rem}
+  .alerts-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <p id="loading-msg">Conectando con Google Sheets...</p>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo-group">
+    <a href="index.html" class="back-btn" aria-label="Volver al inicio">&#8592;</a>
+    <div>
+      <div class="logo-name">Luxury Shoes</div>
+      <div class="logo-sub">Dashboard ejecutivo</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="last-update" id="last-update"></span>
+    <button class="icon-btn" id="theme-btn" onclick="toggleTheme()" aria-label="Cambiar tema">🌙</button>
+    <button class="refresh-btn" id="refresh-btn" onclick="loadData(true)" aria-label="Actualizar datos">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:4px"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+      Actualizar
+    </button>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="main" id="main-content">
+  <div style="text-align:center;padding:4rem;color:var(--mid)">
+    <div class="spinner" style="margin:0 auto 1rem"></div>
+    <p style="font-size:.88rem">Cargando datos...</p>
+  </div>
+</main>
+
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════
+   CONFIG — misma fuente que catalogo_zapatos.html
+═══════════════════════════════════════════ */
+const CONFIG = {
+  csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS7e_IekI9tZJaDGPWd8xw1wFUOpFSiQZOk-AWZwfPTmrG-PgVbXFaSxujXln8PAQqx275piuJaLLCm/pub?gid=1069283032&single=true&output=csv',
+  cacheTTL: 5 * 60 * 1000,
+  cols: {
+    tallaUSA:    'TALLA EN USA',
+    tallaCM:     'TALLA EN CM',
+    precioFinal: 'PRECIO FINAL DE VENTA:',
+    precioEst:   'PRECIO ESTIMADO DE VENTA:',
+    precioCompra:'PRECIO DE COMPRA:',
+    modelo:      'TIPO DE ZAPATO',
+    suela:       'SUELA',
+    disp:        'DISPONIBILIDAD',
+    ubicacion:   'UBICACIÓN',
+    fechaCompra: 'FECHA DE COMPRA',
+    img1:'IMAGEN 1',img2:'IMAGEN 2',img3:'IMAGEN 3',img4:'IMAGEN 4',
+    imgFallback1:'URL MODIFICADA', imgFallback2:'IMAGEN',
+  }
+};
+
+/* ═══════════════════════════════════════════
+   CSV PARSER (igual que catálogo)
+═══════════════════════════════════════════ */
+function parseCSV(text){
+  const lines=text.trim().replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+  if(!lines.length) return [];
+  const headers=splitCSVRow(lines[0]);
+  return lines.slice(1).map(line=>{
+    const vals=splitCSVRow(line);
+    const obj={};
+    headers.forEach((h,i)=>obj[h.trim()]=(vals[i]||'').trim());
+    return obj;
+  });
+}
+function splitCSVRow(line){
+  const r=[];let c='';let q=false;
+  for(let i=0;i<line.length;i++){
+    if(line[i]==='"'){q=!q;continue}
+    if(line[i]===','&&!q){r.push(c);c='';continue}
+    c+=line[i];
+  }
+  r.push(c);return r;
+}
+function cv(v){const t=(v||'').trim();return t==='​'?'':t;}
+function cleanPrice(p){const n=parseFloat((p||'').replace(/[$,\s]/g,''));return isNaN(n)?null:n;}
+function driveId(url){
+  if(!url) return null;
+  const m=url.match(/[?&]id=([^&\s]+)/)||url.match(/\/d\/([^/?#\s]+)/)||url.match(/open\?id=([^&\s]+)/);
+  return m?m[1].trim():null;
+}
+
+/* ═══════════════════════════════════════════
+   FETCH & CACHE
+═══════════════════════════════════════════ */
+let allItems=[];
+let chartsMap={};
+
+async function fetchSheetRows(forceRefresh=false){
+  const cacheKey='ls_dash_cache', cacheTs='ls_dash_ts';
+  const now=Date.now();
+  if(!forceRefresh){
+    const ts=parseInt(sessionStorage.getItem(cacheTs)||'0');
+    if(now-ts<CONFIG.cacheTTL){
+      const cached=sessionStorage.getItem(cacheKey);
+      if(cached) return JSON.parse(cached);
+    }
+  }
+  setLoadingMsg('Obteniendo datos del catálogo...');
+  const r=await fetch(CONFIG.csvUrl);
+  if(!r.ok) throw new Error(`Error HTTP ${r.status}`);
+  const text=await r.text();
+  const rows=parseCSV(text);
+  sessionStorage.setItem(cacheKey,JSON.stringify(rows));
+  sessionStorage.setItem(cacheTs,String(now));
+  return rows;
+}
+
+/* ═══════════════════════════════════════════
+   MAIN LOAD
+═══════════════════════════════════════════ */
+async function loadData(forceRefresh=false){
+  showLoading(true);
+  const btn=document.getElementById('refresh-btn');
+  btn.classList.add('spinning');
+
+  try{
+    const rows=await fetchSheetRows(forceRefresh);
+    const C=CONFIG.cols;
+
+    allItems=rows.filter(r=>cv(r[C.tallaUSA])).map(r=>{
+      const imgIds=[];
+      const addId=raw=>{const id=driveId(cv(raw));if(id&&!imgIds.includes(id))imgIds.push(id);};
+      addId(r[C.img1]);addId(r[C.img2]);addId(r[C.img3]);addId(r[C.img4]);
+      if(!imgIds.length){addId(r[C.imgFallback1]);addId(r[C.imgFallback2]);}
+      return{
+        talla:    cv(r[C.tallaUSA]),
+        cm:       cv(r[C.tallaCM]),
+        precio:   cleanPrice(r[C.precioFinal]),
+        precioEst:cleanPrice(r[C.precioEst]),
+        pc:       cleanPrice(r[C.precioCompra]),
+        modelo:   cv(r[C.modelo])||'Sin modelo',
+        suela:    cv(r[C.suela]),
+        disp:     cv(r[C.disp]).toUpperCase(),
+        ubicacion:cv(r[C.ubicacion]),
+        fecha:    cv(r[C.fechaCompra]),
+        imgIds,
+      };
+    });
+
+    renderDashboard();
+    const now=new Date();
+    document.getElementById('last-update').textContent=
+      `Actualizado: ${now.toLocaleTimeString('es-SV',{hour:'2-digit',minute:'2-digit'})}`;
+
+  }catch(err){
+    document.getElementById('main-content').innerHTML=`
+      <div class="error-state">
+        <h2>No se pudo cargar</h2>
+        <p>${err.message}</p>
+        <p>Verifica que el Google Sheets esté publicado como CSV.</p>
+        <button class="retry-btn" onclick="loadData(true)">↻ Reintentar</button>
+      </div>`;
+  }finally{
+    showLoading(false);
+    btn.classList.remove('spinning');
+  }
+}
+
+/* ═══════════════════════════════════════════
+   COMPUTE METRICS
+═══════════════════════════════════════════ */
+function computeMetrics(){
+  const items=allItems;
+  const N=items.length;
+  const disponibles=items.filter(i=>i.disp==='DISPONIBLE');
+  const vendidos=items.filter(i=>i.disp==='VENDIDO');
+  const sinImg=items.filter(i=>i.imgIds.length===0);
+  const sinPrecio=items.filter(i=>!i.precio&&!i.precioEst);
+
+  const capitalTotal=items.reduce((s,i)=>s+(i.pc||0),0);
+  const ingPotencial=disponibles.reduce((s,i)=>s+(i.precio||i.precioEst||0),0);
+  const ingRealizado=vendidos.reduce((s,i)=>s+(i.precio||i.precioEst||0),0);
+  const costoVendidos=vendidos.reduce((s,i)=>s+(i.pc||0),0);
+  const gananciaReal=ingRealizado-costoVendidos;
+
+  // Por talla
+  const tallaCount={};
+  disponibles.forEach(i=>{
+    const t=i.talla||'?';
+    tallaCount[t]=(tallaCount[t]||0)+1;
+  });
+
+  // Por modelo
+  const modeloCount={};
+  disponibles.forEach(i=>{
+    const m=i.modelo||'Otro';
+    modeloCount[m]=(modeloCount[m]||0)+1;
+  });
+
+  // Por fecha
+  const fechaCount={};
+  items.forEach(i=>{
+    const f=i.fecha;
+    if(f) fechaCount[f]=(fechaCount[f]||0)+1;
+  });
+
+  // Por precio range
+  const priceRanges={'$1-$30':0,'$31-$40':0,'$41-$50':0,'$51-$60':0,'$61+':0};
+  disponibles.forEach(i=>{
+    const p=i.precio||i.precioEst||0;
+    if(p<=30)priceRanges['$1-$30']++;
+    else if(p<=40)priceRanges['$31-$40']++;
+    else if(p<=50)priceRanges['$41-$50']++;
+    else if(p<=60)priceRanges['$51-$60']++;
+    else priceRanges['$61+']++;
+  });
+
+  // Top márgenes
+  const withMargen=items
+    .filter(i=>i.pc&&(i.precio||i.precioEst))
+    .map(i=>({
+      ...i,
+      pv:i.precio||i.precioEst,
+      margen:((i.precio||i.precioEst)-i.pc),
+      margenPct:(((i.precio||i.precioEst)-i.pc)/i.pc*100)
+    }))
+    .sort((a,b)=>b.margen-a.margen)
+    .slice(0,8);
+
+  // Tallas especiales (poco movimiento)
+  const tallasEspeciales=Object.entries(tallaCount)
+    .filter(([t])=>parseFloat(t)<=5.5||parseFloat(t)>=11)
+    .reduce((s,[,c])=>s+c,0);
+
+  return{
+    N,disponibles:disponibles.length,vendidos:vendidos.length,
+    sinImg:sinImg.length,sinPrecio:sinPrecio.length,
+    capitalTotal,ingPotencial,ingRealizado,gananciaReal,
+    tallaCount,modeloCount,fechaCount,priceRanges,withMargen,
+    tallasEspeciales,
+    avgPrecioDisp:disponibles.length?ingPotencial/disponibles.length:0,
+    tasaVenta:N>0?Math.round(vendidos.length/N*100):0,
+  };
+}
+
+/* ═══════════════════════════════════════════
+   RENDER DASHBOARD
+═══════════════════════════════════════════ */
+function renderDashboard(){
+  const m=computeMetrics();
+  destroyAllCharts();
+
+  document.getElementById('main-content').innerHTML=`
+
+    <!-- KPIs -->
+    <div class="section-label">Inventario general</div>
+    <div class="kpi-grid" id="kpi-inv"></div>
+
+    <div class="section-label">Finanzas</div>
+    <div class="kpi-grid" id="kpi-fin"></div>
+
+    <!-- CHARTS ROW 1: Entradas por día + Distribución disponibilidad -->
+    <div class="section-label">Movimiento de inventario</div>
+    <div class="charts-row cols-2-1">
+      <div class="chart-card">
+        <div class="chart-card-title">Entradas por fecha de compra</div>
+        <div class="chart-card-sub">Productos incorporados al inventario por día</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="c-fechas" role="img" aria-label="Entradas por fecha"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title">Estado del inventario</div>
+        <div class="chart-card-sub">Disponible vs vendido</div>
+        <div class="chart-legend" id="leg-estado"></div>
+        <div class="chart-wrap" style="height:160px"><canvas id="c-estado" role="img" aria-label="Estado inventario"></canvas></div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW 2: Tallas + Precios -->
+    <div class="section-label">Tallas y precios</div>
+    <div class="charts-row cols-2">
+      <div class="chart-card">
+        <div class="chart-card-title">Distribución por talla (USA) — disponibles</div>
+        <div class="chart-card-sub">Cantidad de productos por número de calzado</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="c-tallas" role="img" aria-label="Distribución por talla"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title">Rango de precios de venta — disponibles</div>
+        <div class="chart-card-sub">Productos agrupados por precio final</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="c-precios" role="img" aria-label="Rango de precios"></canvas></div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW 3: Modelos top + Margen -->
+    <div class="section-label">Modelos y rentabilidad</div>
+    <div class="charts-row cols-1-2">
+      <div class="chart-card">
+        <div class="chart-card-title">Top modelos disponibles</div>
+        <div class="chart-card-sub">Por cantidad de unidades</div>
+        <div id="top-modelos-wrap"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title">Productos con mayor ganancia potencial</div>
+        <div class="chart-card-sub">Margen = precio venta − precio compra</div>
+        <div class="chart-wrap" style="height:240px"><canvas id="c-margen" role="img" aria-label="Margen por producto"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="section-label">Alertas e inteligencia</div>
+    <div class="alerts-grid" id="alerts-grid"></div>
+  `;
+
+  /* ── KPI: Inventario ── */
+  renderKPIs('kpi-inv',[
+    {icon:'📦',label:'Inventario total',val:m.N,sub:'productos registrados'},
+    {icon:'✅',label:'Disponibles',val:m.disponibles,sub:'listos para vender',accent:true},
+    {icon:'🏷️',label:'Vendidos',val:m.vendidos,sub:'unidades vendidas'},
+    {icon:'📊',label:'Tasa de venta',val:m.tasaVenta+'%',sub:'del total registrado',
+      trend:m.tasaVenta>50?'up':m.tasaVenta>20?'warn':'neutral',
+      trendLabel:m.tasaVenta>50?'Alta rotación':m.tasaVenta>20?'Rotación media':'Rotación baja'},
+    {icon:'📐',label:'Tallas únicas',val:Object.keys(m.tallaCount).length,sub:'números diferentes'},
+    {icon:'👟',label:'Modelos',val:Object.keys(m.modeloCount).length,sub:'modelos distintos'},
+  ]);
+
+  /* ── KPI: Finanzas ── */
+  renderKPIs('kpi-fin',[
+    {icon:'💰',label:'Capital invertido',val:'$'+m.capitalTotal.toFixed(0),sub:'costo de compra total',accent:true},
+    {icon:'📈',label:'Ingreso potencial',val:'$'+m.ingPotencial.toFixed(0),sub:'valor venta disponibles',accent:true},
+    {icon:'💵',label:'Ingreso realizado',val:'$'+m.ingRealizado.toFixed(0),sub:'de productos vendidos'},
+    {icon:'🎯',label:'Ganancia real',val:'$'+m.gananciaReal.toFixed(0),sub:'ventas − costo',accent:m.gananciaReal>0},
+    {icon:'💲',label:'Precio prom.',val:'$'+m.avgPrecioDisp.toFixed(0),sub:'por unidad disponible'},
+    {icon:'📉',label:'Sin precio',val:m.sinPrecio,sub:'productos sin precio definido',
+      trend:m.sinPrecio>0?'warn':'up',trendLabel:m.sinPrecio>0?'Requieren atención':'Todos con precio'},
+  ]);
+
+  /* ── CHART: Fechas ── */
+  const fechas=Object.keys(m.fechaCount).sort((a,b)=>new Date(a)-new Date(b));
+  const fechaVals=fechas.map(f=>m.fechaCount[f]);
+  buildChart('c-fechas','bar',{
+    labels:fechas.map(f=>{
+      const d=new Date(f+'T00:00:00');
+      return isNaN(d)?f:d.toLocaleDateString('es-SV',{month:'short',day:'numeric'});
+    }),
+    datasets:[{
+      label:'Productos',data:fechaVals,
+      backgroundColor:'#c8a96e',borderRadius:4,borderSkipped:false,
+    }]
+  },{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{ticks:{font:{size:10},autoSkip:false,maxRotation:0}},
+      y:{ticks:{font:{size:10},stepSize:1},beginAtZero:true}
+    }
+  });
+
+  /* ── CHART: Estado (donut) ── */
+  const estadoData=[m.disponibles,m.vendidos,m.N-m.disponibles-m.vendidos].filter((_,i)=>
+    [m.disponibles>0,m.vendidos>0,m.N-m.disponibles-m.vendidos>0][i]);
+  const estadoLabels=['Disponible','Vendido','Otro'].filter((_,i)=>
+    [m.disponibles>0,m.vendidos>0,m.N-m.disponibles-m.vendidos>0][i]);
+  const estadoColors=['#1D9E75','#D85A30','#888780'];
+  document.getElementById('leg-estado').innerHTML=
+    estadoLabels.map((l,i)=>`<span class="leg-item"><span class="leg-sq" style="background:${estadoColors[i]}"></span>${l} (${estadoData[i]})</span>`).join('');
+  buildChart('c-estado','doughnut',{
+    labels:estadoLabels,
+    datasets:[{data:estadoData,backgroundColor:estadoColors,borderWidth:2,borderColor:'transparent'}]
+  },{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},cutout:'60%'
+  });
+
+  /* ── CHART: Tallas ── */
+  const tallasOrden=Object.keys(m.tallaCount).sort((a,b)=>parseFloat(a)-parseFloat(b));
+  const tallaColors=['#378ADD','#1D9E75','#BA7517','#D85A30','#7F77DD','#639922','#888780','#D4537E','#E24B4A','#1D9E75','#3266ad','#BA7517'];
+  buildChart('c-tallas','bar',{
+    labels:tallasOrden.map(t=>'US '+t),
+    datasets:[{
+      label:'Disponibles',data:tallasOrden.map(t=>m.tallaCount[t]),
+      backgroundColor:tallasOrden.map((_,i)=>tallaColors[i%tallaColors.length]),
+      borderRadius:4,borderSkipped:false,
+    }]
+  },{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{ticks:{font:{size:10},autoSkip:false,maxRotation:0}},
+      y:{ticks:{font:{size:10},stepSize:1},beginAtZero:true}
+    }
+  });
+
+  /* ── CHART: Precios ── */
+  const priceLabels=Object.keys(m.priceRanges);
+  const priceVals=Object.values(m.priceRanges);
+  buildChart('c-precios','bar',{
+    labels:priceLabels,
+    datasets:[{
+      label:'Productos',data:priceVals,
+      backgroundColor:['#1D9E75','#378ADD','#BA7517','#c8a96e','#D85A30'],
+      borderRadius:4,borderSkipped:false,
+    }]
+  },{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{ticks:{font:{size:10}}},
+      y:{ticks:{font:{size:10},stepSize:1},beginAtZero:true}
+    }
+  });
+
+  /* ── TOP MODELOS TABLE ── */
+  const topModelos=Object.entries(m.modeloCount)
+    .sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const maxMod=topModelos[0]?.[1]||1;
+  document.getElementById('top-modelos-wrap').innerHTML=`
+    <table class="top-table">
+      <thead><tr><th>#</th><th>Modelo</th><th>Unid.</th><th>Cantidad</th></tr></thead>
+      <tbody>${topModelos.map(([mod,cnt],i)=>`
+        <tr>
+          <td><span class="rank-num">${i+1}</span></td>
+          <td>${mod}</td>
+          <td>${cnt}</td>
+          <td><div class="bar-cell"><div class="mini-bar" style="width:${Math.round(cnt/maxMod*100)}px"></div></div></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+
+  /* ── CHART: Margen horizontal ── */
+  buildChart('c-margen','bar',{
+    labels:m.withMargen.map((_,i)=>'P'+(i+1)),
+    datasets:[
+      {label:'Margen ($)',data:m.withMargen.map(i=>+i.margen.toFixed(1)),backgroundColor:'#1D9E75',borderRadius:3,borderSkipped:false},
+      {label:'Costo',data:m.withMargen.map(i=>i.pc),backgroundColor:'#e8e3db',borderRadius:3,borderSkipped:false},
+    ]
+  },{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{label:ctx=>{
+        const item=m.withMargen[ctx.dataIndex];
+        if(!item) return '';
+        return ctx.dataset.label+': $'+ctx.raw+' ('+item.margenPct.toFixed(0)+'% margen)';
+      }}}
+    },
+    scales:{
+      x:{ticks:{font:{size:10},autoSkip:false}},
+      y:{ticks:{font:{size:10},callback:v=>'$'+v},beginAtZero:true}
+    }
+  });
+
+  /* ── ALERTS ── */
+  const alerts=buildAlerts(m);
+  document.getElementById('alerts-grid').innerHTML=alerts
+    .map(a=>`
+      <div class="alert ${a.type}">
+        <div class="alert-header"><span class="alert-dot"></span><span class="alert-title">${a.title}</span></div>
+        <div class="alert-body">${a.body}</div>
+      </div>`).join('');
+}
+
+/* ═══════════════════════════════════════════
+   KPI RENDERER
+═══════════════════════════════════════════ */
+function renderKPIs(containerId, kpis){
+  document.getElementById(containerId).innerHTML=kpis.map(k=>`
+    <div class="kpi">
+      <div class="kpi-icon">${k.icon}</div>
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-val${k.accent?' accent':''}">${k.val}</div>
+      <div class="kpi-sub">${k.sub}</div>
+      ${k.trend?`<span class="kpi-trend trend-${k.trend}">${k.trendLabel}</span>`:''}
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════════════════
+   ALERTS BUILDER
+═══════════════════════════════════════════ */
+function buildAlerts(m){
+  const alerts=[];
+
+  // Capital vs potencial
+  const roi=m.capitalTotal>0?((m.ingPotencial-m.capitalTotal)/m.capitalTotal*100):0;
+  alerts.push({type:'info',
+    title:'ROI potencial del inventario disponible',
+    body:`Capital invertido total: $${m.capitalTotal.toFixed(0)}. Ingreso potencial en disponibles: $${m.ingPotencial.toFixed(0)}. ROI estimado: ${roi.toFixed(0)}%.`
+  });
+
+  // Sin imagen
+  if(m.sinImg>0){
+    alerts.push({type:'warn',
+      title:`${m.sinImg} producto${m.sinImg>1?'s':''} sin imagen`,
+      body:'Los productos sin foto tienen menor conversión en el catálogo. Agrega imágenes desde el Google Form o editando el Sheets.'
+    });
+  }else{
+    alerts.push({type:'green',
+      title:'Todas las imágenes presentes',
+      body:`Los ${m.N} productos tienen al menos una imagen cargada en el catálogo.`
+    });
+  }
+
+  // Sin precio
+  if(m.sinPrecio>0){
+    alerts.push({type:'red',
+      title:`${m.sinPrecio} producto${m.sinPrecio>1?'s':''} sin precio`,
+      body:'Estos productos no muestran precio en el catálogo público. Revisa las columnas "PRECIO FINAL" o "PRECIO ESTIMADO" en el Sheets.'
+    });
+  }
+
+  // Tallas especiales
+  if(m.tallasEspeciales>0){
+    alerts.push({type:'warn',
+      title:`${m.tallasEspeciales} producto${m.tallasEspeciales>1?'s':''} en talla especial`,
+      body:'Tallas 5.5 o menores y 11 o mayores suelen rotar más lento. Considera precio promocional o publicación específica.'
+    });
+  }
+
+  // Tasa de venta
+  if(m.tasaVenta>=50){
+    alerts.push({type:'green',
+      title:'Alta tasa de rotación: '+m.tasaVenta+'%',
+      body:`${m.vendidos} de ${m.N} productos vendidos. ¡Excelente movimiento! Considera reponer las tallas más vendidas.`
+    });
+  }else if(m.tasaVenta<10&&m.N>0){
+    alerts.push({type:'warn',
+      title:'Rotación baja: '+m.tasaVenta+'%',
+      body:`Solo ${m.vendidos} productos vendidos de ${m.N} en inventario. Activa promociones o destaca en redes sociales.`
+    });
+  }
+
+  // Ganancia real
+  if(m.gananciaReal>0){
+    alerts.push({type:'green',
+      title:'Ganancia acumulada: $'+m.gananciaReal.toFixed(0),
+      body:`Productos vendidos generaron $${m.ingRealizado.toFixed(0)} de ingresos con un costo de $${(m.ingRealizado-m.gananciaReal).toFixed(0)}.`
+    });
+  }
+
+  // Stock bajo
+  const tallasBajas=Object.entries(m.tallaCount).filter(([,c])=>c===1);
+  if(tallasBajas.length>0){
+    alerts.push({type:'warn',
+      title:`${tallasBajas.length} talla${tallasBajas.length>1?'s':''} con 1 unidad`,
+      body:`Tallas con última unidad disponible: ${tallasBajas.map(([t])=>'US '+t).join(', ')}. Prioriza su venta o repón antes de agotarse.`
+    });
+  }
+
+  return alerts;
+}
+
+/* ═══════════════════════════════════════════
+   CHART HELPERS
+═══════════════════════════════════════════ */
+function destroyAllCharts(){
+  Object.values(chartsMap).forEach(c=>c.destroy());
+  chartsMap={};
+}
+function buildChart(id,type,data,options){
+  if(chartsMap[id]) chartsMap[id].destroy();
+  const canvas=document.getElementById(id);
+  if(!canvas) return;
+  chartsMap[id]=new Chart(canvas,{type,data,options});
+}
+
+/* ═══════════════════════════════════════════
+   LOADING
+═══════════════════════════════════════════ */
+function showLoading(show){
+  document.getElementById('loading-overlay').classList.toggle('show',show);
+}
+function setLoadingMsg(msg){
+  document.getElementById('loading-msg').textContent=msg;
+}
+
+/* ═══════════════════════════════════════════
+   THEME
+═══════════════════════════════════════════ */
+function toggleTheme(){
+  const dark=document.body.classList.toggle('dark');
+  document.getElementById('theme-btn').textContent=dark?'☀️':'🌙';
+  localStorage.setItem('ls_theme',dark?'dark':'light');
+}
+(function initTheme(){
+  if(localStorage.getItem('ls_theme')==='dark'){
+    document.body.classList.add('dark');
+    document.getElementById('theme-btn').textContent='☀️';
+  }
+})();
+
+/* ═══════════════════════════════════════════
+   AUTO-REFRESH cada 5 minutos
+═══════════════════════════════════════════ */
+setInterval(()=>loadData(false), 5*60*1000);
+
+/* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+loadData();
+</script>
+</body>
+</html>
