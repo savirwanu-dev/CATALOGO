@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Luxury Shoes · El Salvador</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cream:#faf8f4;--dark:#1c1a17;--mid:#5a5750;
+  --border:#e8e3db;--accent:#c8a96e;--white:#fff;
+  --shadow:0 4px 24px rgba(28,26,23,0.10);
+}
+body.dark{
+  --cream:#141210;--dark:#f0ece4;--mid:#9a9488;
+  --border:#2e2b26;--accent:#c8a96e;--white:#1e1c19;
+  --shadow:0 4px 24px rgba(0,0,0,0.4);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--dark);min-height:100vh}
+
+/* ── HEADER ── */
+header{
+  background:var(--dark);color:var(--white);
+  padding:0 2.5rem;height:64px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:200;
+}
+.logo-wrap{display:flex;align-items:baseline;gap:12px}
+.logo{font-family:'Playfair Display',serif;font-size:1.4rem;letter-spacing:0.02em;color:var(--white)}
+.logo-sub{font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.45)}
+#theme-btn{
+  width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,0.25);
+  background:transparent;cursor:pointer;font-size:1rem;
+  display:flex;align-items:center;justify-content:center;
+  color:rgba(255,255,255,0.7);transition:all 0.2s;
+}
+#theme-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── HERO ── */
+.hero{
+  text-align:center;padding:4rem 2rem 2rem;
+}
+.hero-eyebrow{
+  font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--accent);margin-bottom:1rem;
+}
+.hero-title{
+  font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3.2rem);
+  color:var(--dark);line-height:1.15;margin-bottom:1rem;
+}
+.hero-sub{
+  font-size:0.95rem;color:var(--mid);max-width:400px;margin:0 auto 2.5rem;
+  line-height:1.6;
+}
+.hero-divider{
+  width:48px;height:2px;background:var(--accent);margin:0 auto 3rem;
+  border-radius:2px;
+}
+
+/* ── BRANDS GRID ── */
+.brands-wrap{
+  max-width:1100px;margin:0 auto;padding:0 2rem 5rem;
+}
+.section-label{
+  font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;
+  color:var(--mid);margin-bottom:1.5rem;text-align:center;
+}
+.brands-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:1.25rem;
+}
+.brand-card{
+  background:var(--white);border:1px solid var(--border);border-radius:18px;
+  padding:2rem 1.5rem 1.75rem;
+  display:flex;flex-direction:column;align-items:center;gap:1rem;
+  cursor:pointer;text-decoration:none;color:inherit;
+  transition:transform 0.22s,box-shadow 0.22s,border-color 0.22s;
+  position:relative;overflow:hidden;
+}
+.brand-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,transparent 60%,rgba(200,169,110,0.07));
+  opacity:0;transition:opacity 0.3s;
+}
+.brand-card:hover{
+  transform:translateY(-5px);
+  box-shadow:0 12px 40px rgba(28,26,23,0.13);
+  border-color:var(--accent);
+}
+.brand-card:hover::before{opacity:1}
+.brand-icon{
+  width:72px;height:72px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:2rem;background:var(--cream);
+  border:1px solid var(--border);
+  transition:transform 0.22s;
+}
+.brand-card:hover .brand-icon{transform:scale(1.1)}
+.brand-name{
+  font-family:'Playfair Display',serif;font-size:1.15rem;
+  text-align:center;line-height:1.2;
+}
+.brand-desc{
+  font-size:0.75rem;color:var(--mid);text-align:center;line-height:1.5;
+}
+.brand-arrow{
+  font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--accent);margin-top:auto;
+  display:flex;align-items:center;gap:4px;opacity:0;
+  transition:opacity 0.2s,gap 0.2s;
+}
+.brand-card:hover .brand-arrow{opacity:1;gap:8px}
+
+/* ── FOOTER ── */
+footer{
+  text-align:center;padding:2rem;
+  font-size:0.75rem;color:var(--mid);
+  border-top:1px solid var(--border);
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  header{padding:0 1.25rem}
+  .hero{padding:2.5rem 1.5rem 1.5rem}
+  .brands-wrap{padding:0 1.25rem 3rem}
+  .brands-grid{grid-template-columns:repeat(2,1fr);gap:1rem}
+  .brand-card{padding:1.5rem 1rem 1.25rem}
+  .brand-icon{width:58px;height:58px;font-size:1.6rem}
+  .brand-name{font-size:1rem}
+  .brand-desc{display:none}
+}
+@media(max-width:420px){
+  .brands-grid{grid-template-columns:repeat(2,1fr);gap:0.75rem}
+  .brand-card{padding:1.25rem 0.75rem}
+  .brand-name{font-size:0.9rem}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <div>
+      <div class="logo">Luxury Shoes</div>
+      <div class="logo-sub">El Salvador</div>
+    </div>
+  </div>
+  <button id="theme-btn" onclick="toggleTheme()" title="Cambiar tema">🌙</button>
+</header>
+
+<section class="hero">
+  <div class="hero-eyebrow">Colección exclusiva</div>
+  <h1 class="hero-title">Elige tu marca<br>favorita</h1>
+  <p class="hero-sub">Zapatos originales importados. Selecciona una marca para ver el inventario disponible.</p>
+  <div class="hero-divider"></div>
+</section>
+
+<div class="brands-wrap">
+  <div class="section-label">Marcas disponibles</div>
+  <div class="brands-grid" id="brands-grid"></div>
+</div>
+
+<footer>
+  © 2025 Luxury Shoes El Salvador · Todos los derechos reservados
+</footer>
+
+<script>
+const BRANDS = [
+  { name:'Skechers',     icon:'👟', desc:'Comfort & lifestyle' },
+  { name:'Hoka',         icon:'🏃', desc:'Máximo amortiguamiento' },
+  { name:'On Cloud',     icon:'☁️', desc:'Running suizo' },
+  { name:'Timberland',   icon:'🥾', desc:'Bota clásica & outdoor' },
+  { name:'Caterpillar',  icon:'🔶', desc:'Trabajo & aventura' },
+  { name:'New Balance',  icon:'⚖️', desc:'Performance & estilo' },
+  { name:'Nike',         icon:'✔️', desc:'Just do it' },
+  { name:'Adidas',       icon:'🔷', desc:'Imposible is nothing' },
+  { name:'Puma',         icon:'🐆', desc:'Forever faster' },
+  { name:'Vans',         icon:'🛹', desc:'Off the wall' },
+  { name:'Converse',     icon:'⭐', desc:'All star original' },
+  { name:'Reebok',       icon:'💪', desc:'Sport & fitness' },
+];
+
+function renderBrands(){
+  const grid = document.getElementById('brands-grid');
+  grid.innerHTML = BRANDS.map(b => `
+    <a class="brand-card" href="catalogo_zapatos.html?marca=${encodeURIComponent(b.name)}">
+      <div class="brand-icon">${b.icon}</div>
+      <div class="brand-name">${b.name}</div>
+      <div class="brand-desc">${b.desc}</div>
+      <span class="brand-arrow">Ver catálogo →</span>
+    </a>
+  `).join('');
+}
+
+function toggleTheme(){
+  const dark = document.body.classList.toggle('dark');
+  document.getElementById('theme-btn').textContent = dark ? '☀️' : '🌙';
+  localStorage.setItem('theme', dark ? 'dark' : 'light');
+}
+if(localStorage.getItem('theme')==='dark'){
+  document.body.classList.add('dark');
+  document.getElementById('theme-btn').textContent = '☀️';
+}
+
+renderBrands();
+</script>
+</body>
+</html>
